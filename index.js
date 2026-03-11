@@ -1,181 +1,118 @@
-const username = "admin"
-const password = "admin123"
+let allIssues = [];
+let filteredIssues = [];
 
+// LOGIN FUNCTION
+function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
 
-function login(){
+  if (username === "admin" && password === "admin123") {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("mainPage").classList.remove("hidden");
 
-const user = document.getElementById("username").value
-const pass = document.getElementById("password").value
-
-if(user === username && pass === password){
-
-document.getElementById("loginPage").classList.add("hidden")
-document.getElementById("mainPage").classList.remove("hidden")
-
-loadIssues()
-
-}else{
-
-alert("Invalid Credentials")
-
+    loadIssues();
+  } else {
+    alert("Invalid Credentials");
+  }
 }
 
+// LOAD ISSUES FROM API
+async function loadIssues() {
+  const loading = document.getElementById("loading");
+  loading.classList.remove("hidden");
+
+  try {
+    const res = await fetch(
+      "https://phi-lab-server.vercel.app/api/v1/lab/issues"
+    );
+    const data = await res.json();
+
+    allIssues = data.data;
+    filteredIssues = allIssues;
+
+    displayIssues(filteredIssues);
+  } catch (error) {
+    console.log(error);
+  }
+
+  loading.classList.add("hidden");
 }
 
+// DISPLAY ISSUES
+function displayIssues(issues) {
+  const container = document.getElementById("issueContainer");
 
+  container.innerHTML = "";
 
-const issues = [
+  issues.forEach((issue) => {
+    const card = document.createElement("div");
 
-{
-title:"Fix login bug",
-description:"Login not working on Safari",
-status:"open",
-author:"John",
-priority:"High",
-label:"Bug",
-createdAt:"2024-03-10"
-},
+    card.className =
+      "card bg-base-100 shadow-md p-4 cursor-pointer hover:shadow-xl transition";
 
-{
-title:"Improve UI",
-description:"Update dashboard design",
-status:"closed",
-author:"Sarah",
-priority:"Medium",
-label:"Design",
-createdAt:"2024-03-08"
-},
+    card.innerHTML = `
+        <h2 class="font-bold text-lg">${issue.title}</h2>
+        <p class="text-sm text-gray-500">${issue.description}</p>
 
-{
-title:"Add search feature",
-description:"Search functionality for issues",
-status:"open",
-author:"Mike",
-priority:"Low",
-label:"Feature",
-createdAt:"2024-03-05"
-},
+        <div class="mt-3 space-y-1 text-sm">
+            <p><b>Status:</b> ${issue.status}</p>
+            <p><b>Author:</b> ${issue.author}</p>
+            <p><b>Priority:</b> ${issue.priority}</p>
+            <p><b>Label:</b> ${issue.label}</p>
+            <p><b>Created:</b> ${new Date(issue.createdAt).toLocaleDateString()}</p>
+        </div>
+    `;
 
-{
-title:"API integration",
-description:"Connect frontend with API",
-status:"closed",
-author:"Anna",
-priority:"High",
-label:"Backend",
-createdAt:"2024-03-01"
+    card.onclick = () => openModal(issue);
+
+    container.appendChild(card);
+  });
 }
 
-]
+// FILTER ISSUES
+function filterIssues(type) {
+  document
+    .querySelectorAll(".tab")
+    .forEach((tab) => tab.classList.remove("tab-active"));
 
-let currentIssues = issues
+  document.getElementById(`tab-${type}`).classList.add("tab-active");
 
+  if (type === "all") {
+    filteredIssues = allIssues;
+  } else {
+    filteredIssues = allIssues.filter((issue) => issue.status === type);
+  }
 
-
-function loadIssues(){
-
-document.getElementById("loading").classList.remove("hidden")
-
-setTimeout(()=>{
-
-displayIssues(currentIssues)
-
-document.getElementById("loading").classList.add("hidden")
-
-},800)
-
+  displayIssues(filteredIssues);
 }
 
+// SEARCH FUNCTION
+function searchIssues() {
+  const text = document
+    .getElementById("searchInput")
+    .value.toLowerCase();
 
+  const result = filteredIssues.filter((issue) =>
+    issue.title.toLowerCase().includes(text)
+  );
 
-function displayIssues(data){
-
-const container = document.getElementById("issueContainer")
-
-container.innerHTML = ""
-
-data.forEach(issue => {
-
-const borderColor = issue.status === "open"
-? "border-green-500"
-: "border-purple-500"
-
-container.innerHTML += `
-
-<div onclick="openModal('${issue.title}')"
-class="card bg-base-100 shadow border-t-4 ${borderColor} cursor-pointer">
-
-<div class="card-body">
-
-<h2 class="card-title">${issue.title}</h2>
-
-<p>${issue.description}</p>
-
-<p><b>Status:</b> ${issue.status}</p>
-<p><b>Author:</b> ${issue.author}</p>
-<p><b>Priority:</b> ${issue.priority}</p>
-<p><b>Label:</b> ${issue.label}</p>
-<p class="text-sm text-gray-400">${issue.createdAt}</p>
-
-</div>
-
-</div>
-
-`
-
-})
-
+  displayIssues(result);
 }
 
+// OPEN MODAL
+function openModal(issue) {
+  document.getElementById("modalTitle").innerText = issue.title;
+  document.getElementById("modalDescription").innerText =
+    issue.description;
 
+  document.getElementById("modalStatus").innerText = issue.status;
+  document.getElementById("modalAuthor").innerText = issue.author;
+  document.getElementById("modalPriority").innerText = issue.priority;
+  document.getElementById("modalLabel").innerText = issue.label;
 
-function filterIssues(type){
+  document.getElementById("modalDate").innerText = new Date(
+    issue.createdAt
+  ).toLocaleString();
 
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("tab-active"))
-
-document.getElementById(`tab-${type}`).classList.add("tab-active")
-
-if(type === "all"){
-
-currentIssues = issues
-
-}else{
-
-currentIssues = issues.filter(i => i.status === type)
-
-}
-
-displayIssues(currentIssues)
-
-}
-
-
-
-function searchIssues(){
-
-const text = document.getElementById("searchInput").value.toLowerCase()
-
-const filtered = issues.filter(issue =>
-issue.title.toLowerCase().includes(text)
-)
-
-displayIssues(filtered)
-
-}
-
-
-function openModal(title){
-
-const issue = issues.find(i=>i.title===title)
-
-document.getElementById("modalTitle").innerText = issue.title
-document.getElementById("modalDescription").innerText = issue.description
-document.getElementById("modalStatus").innerText = issue.status
-document.getElementById("modalAuthor").innerText = issue.author
-document.getElementById("modalPriority").innerText = issue.priority
-document.getElementById("modalLabel").innerText = issue.label
-document.getElementById("modalDate").innerText = issue.createdAt
-
-issueModal.showModal()
-
+  document.getElementById("issueModal").showModal();
 }
