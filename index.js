@@ -41,26 +41,36 @@ async function loadIssues() {
 // DISPLAY ISSUES
 function displayIssues(issues) {
   const container = document.getElementById("issueContainer");
-
   container.innerHTML = "";
 
   issues.forEach((issue) => {
+
+    let borderColor = "";
+
+    if (issue.status === "open") {
+      borderColor = "border-t-4 border-green-500";
+    } else {
+      borderColor = "border-t-4 border-purple-500";
+    }
+
     const card = document.createElement("div");
 
-    card.className =
-      "card bg-base-100 shadow-md p-4 cursor-pointer hover:shadow-xl transition";
+    card.className = `
+      card bg-base-100 shadow-md p-4 cursor-pointer
+      hover:shadow-xl transition ${borderColor}
+    `;
 
     card.innerHTML = `
-        <h2 class="font-bold text-lg">${issue.title}</h2>
-        <p class="text-sm text-gray-500">${issue.description}</p>
+      <h2 class="font-bold text-lg">${issue.title}</h2>
+      <p class="text-sm text-gray-500">${issue.description}</p>
 
-        <div class="mt-3 space-y-1 text-sm">
-            <p><b>Status:</b> ${issue.status}</p>
-            <p><b>Author:</b> ${issue.author}</p>
-            <p><b>Priority:</b> ${issue.priority}</p>
-            <p><b>Label:</b> ${issue.label}</p>
-            <p><b>Created:</b> ${new Date(issue.createdAt).toLocaleDateString()}</p>
-        </div>
+      <div class="mt-3 space-y-1 text-sm">
+        <p><b>Status:</b> ${issue.status}</p>
+        <p><b>Author:</b> ${issue.author}</p>
+        <p><b>Priority:</b> ${issue.priority}</p>
+        <p><b>Label:</b> ${issue.label}</p>
+        <p><b>Created:</b> ${new Date(issue.createdAt).toLocaleDateString()}</p>
+      </div>
     `;
 
     card.onclick = () => openModal(issue);
